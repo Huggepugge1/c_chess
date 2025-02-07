@@ -1,6 +1,7 @@
 #include "uci.h"
 #include "board.h"
 #include "chess_engine.h"
+#include "move.h"
 
 #include <pthread.h>
 #include <stdbool.h>
@@ -60,6 +61,32 @@ void handle_command_position(Split *command, ChessEngine *chess_engine) {
     } else {
         printf("`debug` has to be followed by [startpos | fen], found: %s\n",
                command->strings[1]);
+    }
+}
+
+void handle_command_export(Split *command, ChessEngine *chess_engine) {
+    if (command->len == 4) {
+        enum BoardExportFormat export_format;
+        if (strcmp(command->strings[1], "c") == 0) {
+            export_format = C;
+        } else if (strcmp(command->strings[1], "fen") == 0) {
+            export_format = FEN;
+        } else {
+            printf("`export` has to be followed by [c | fen], found: %s\n",
+                   command->strings[1]);
+        }
+        export_board(chess_engine->board, export_format, command->strings[2],
+                     command->strings[3]);
+        printf("Exported the position to `%s`: `%s`\n", command->strings[3],
+               command->strings[2]);
+    } else {
+        printf("The `export` command has exactly 2 arguments\n");
+    }
+}
+
+void handle_command_move(Split *command, ChessEngine *chess_engine) {
+    if (command->len == 2) {
+        print_move(move_from_string(command->strings[1], chess_engine->board));
     }
 }
 
@@ -149,6 +176,7 @@ void run_uci() {
         trim(buf, 1000);
         Split *command = split(buf);
         if (!command->len) {
+            free_split(command);
             continue;
         }
         if (strcmp(command->strings[0], "uci") == 0) {
@@ -163,6 +191,15 @@ void run_uci() {
         } else if (strcmp(command->strings[0], "position") == 0) {
             handle_command_position(command, chess_engine);
 
+        } else if (strcmp(command->strings[0], "printboard") == 0) {
+            print_board(chess_engine->board);
+
+        } else if (strcmp(command->strings[0], "export") == 0) {
+            handle_command_export(command, chess_engine);
+
+        } else if (strcmp(command->strings[0], "move") == 0) {
+            handle_command_move(command, chess_engine);
+
         } else if (strcmp(command->strings[0], "stop") == 0) {
             handle_command_stop(command);
 
@@ -170,9 +207,6 @@ void run_uci() {
             free_chess_engine(chess_engine);
             free_split(command);
             exit(0);
-
-        } else if (strcmp(command->strings[0], "printboard") == 0) {
-            print_board(chess_engine->board);
 
         } else {
             printf("Unhandled command: %s\n", command->strings[0]);

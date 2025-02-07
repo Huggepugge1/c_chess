@@ -8,8 +8,26 @@
 #include <stdlib.h>
 #include <string.h>
 
+char *board_to_fen(Board *board);
+
 size_t string_to_square(char *string) {
-    return string[0] - 'a' + (string[1] - '0') * 8;
+    if (strcmp(string, "-") == 0) {
+        return 64;
+    }
+    return string[0] - 'a' + (string[1] - '1') * 8;
+}
+
+char *square_to_string(size_t square) {
+    char *string = calloc(3, sizeof(char));
+    if (square == 64) {
+        string[0] = '-';
+        return string;
+    }
+
+    string[0] = 'a' + square % 8;
+    string[1] = '1' + square / 8;
+
+    return string;
 }
 
 void read_fen_part0(Board *board, char *part) {
@@ -80,7 +98,7 @@ void read_fen_part0(Board *board, char *part) {
 }
 
 void read_fen_part1(Board *board, char *part) {
-    if (strcmp(part, "w")) {
+    if (strcmp(part, "w") == 0) {
         board->turn = WHITE;
     } else {
         board->turn = BLACK;
@@ -110,10 +128,6 @@ void read_fen_part2(Board *board, char *part) {
 }
 
 void read_fen_part3(Board *board, char *part) {
-    if (strcmp(part, "-") == 0) {
-        board->en_passant = 64;
-        return;
-    }
     board->en_passant = string_to_square(part);
 }
 
@@ -218,48 +232,135 @@ char *color_to_string(char *string, enum Color c) {
     return string;
 }
 
+void export_to_c(Board *board, char *position_name, FILE *file) {
+    char *bool_string = calloc(6, sizeof(char));
+    char *color_string = calloc(6, sizeof(char));
+    fprintf(file, "#include \"../src/board.h\"\n");
+    fprintf(file, "static const Board %s = {\n", position_name);
+    fprintf(file, "\t0x%016lX, // White Pieces\n", board->white_pieces);
+    fprintf(file, "\t0x%016lX, // Black Pieces\n", board->black_pieces);
+    fprintf(file, "\n");
+    fprintf(file, "\t0x%016lX, // Pawns\n", board->pawns);
+    fprintf(file, "\t0x%016lX, // Rooks\n", board->rooks);
+    fprintf(file, "\t0x%016lX, // Knights\n", board->knights);
+    fprintf(file, "\t0x%016lX, // Bishops\n", board->bishops);
+    fprintf(file, "\t0x%016lX, // Queens\n", board->queens);
+    fprintf(file, "\t0x%016lX, // Kings \n", board->kings);
+    fprintf(file, "\n");
+    fprintf(file, "\t{\n");
+    fprintf(file, "\t\t// Castling\n");
+    fprintf(file, "\t\t%s, // White King side\n",
+            bool_to_string(bool_string, board->castling.white_king));
+    fprintf(file, "\t\t%s, // White Queen side\n",
+            bool_to_string(bool_string, board->castling.white_queen));
+    fprintf(file, "\t\t%s, // Black King side\n",
+            bool_to_string(bool_string, board->castling.black_king));
+    fprintf(file, "\t\t%s, // Black Queen side\n",
+            bool_to_string(bool_string, board->castling.black_queen));
+    fprintf(file, "\t},\n");
+    fprintf(file, "\n");
+    fprintf(file, "\t%zd, // En Passant\t", board->en_passant);
+    fprintf(file, "\n");
+    fprintf(file, "\t%s, // Turn\n",
+            color_to_string(color_string, board->turn));
+    fprintf(file, "\t%zd, // Halfmove Clock\n", board->halfmove_clock);
+    fprintf(file, "\t%zd, // Fullmove Number\n", board->fullmove_number);
+    fprintf(file, "};\n\n");
+
+    free(bool_string);
+    free(color_string);
+}
+
+char *board_to_fen(Board *board) {
+    char *fen = calloc(256, sizeof(char));
+    size_t pos = 0;
+    size_t empty_counter = 0;
+    for (size_t square = 56; square < 65; square++) {
+        Piece piece = get_piece(board, square);
+        if (piece.type == NONE) {
+            empty_counter++;
+        } else {
+            if (empty_counter) {
+                fen[pos++] = empty_counter + '0';
+                empty_counter = 0;
+            }
+            fen[pos++] = piece_to_char(piece);
+        }
+        if ((square % 8) == 7) {
+            if (empty_counter) {
+                fen[pos++] = empty_counter + '0';
+                empty_counter = 0;
+            }
+            if (square > 7) {
+                fen[pos++] = '/';
+            }
+            square -= 16;
+        }
+    }
+
+    fen[pos++] = ' ';
+    if (board->turn == WHITE) {
+        fen[pos++] = 'w';
+    } else {
+        fen[pos++] = 'b';
+    }
+    fen[pos++] = ' ';
+
+    if (board->castling.white_king || board->castling.white_queen ||
+        board->castling.black_king || board->castling.black_queen) {
+        if (board->castling.white_king) {
+            fen[pos++] = 'K';
+        }
+        if (board->castling.white_queen) {
+            fen[pos++] = 'Q';
+        }
+        if (board->castling.black_king) {
+            fen[pos++] = 'k';
+        }
+        if (board->castling.black_queen) {
+            fen[pos++] = 'q';
+        }
+    } else {
+        fen[pos++] = '-';
+    }
+
+    fen[pos++] = ' ';
+
+    char *square_string = square_to_string(board->en_passant);
+    strcpy(fen + pos, square_string);
+    pos += strlen(square_string);
+    free(square_string);
+
+    fen[pos++] = ' ';
+    char int_string[10];
+    sprintf(int_string, "%zd", board->halfmove_clock);
+    strcpy(fen + pos, int_string);
+    pos += strlen(int_string);
+    fen[pos++] = ' ';
+    sprintf(int_string, "%zd", board->fullmove_number);
+    strcpy(fen + pos, int_string);
+
+    return fen;
+}
+
+void export_to_fen(Board *board, FILE *file) {
+    char *fen = board_to_fen(board);
+    fprintf(file, "%s\n", fen);
+    free(fen);
+}
+
 void export_board(Board *board, enum BoardExportFormat export_format,
                   char *position_name, char *file_name) {
     FILE *file = fopen(file_name, "a");
-    char *bool_string = calloc(6, sizeof(char));
-    char *color_string = calloc(6, sizeof(char));
     if (export_format == C) {
-        fprintf(file, "#include \"../src/board.h\"\n");
-        fprintf(file, "static const Board %s = {\n", position_name);
-        fprintf(file, "\t0x%016lX, // White Pieces\n", board->white_pieces);
-        fprintf(file, "\t0x%016lX, // Black Pieces\n", board->black_pieces);
-        fprintf(file, "\n");
-        fprintf(file, "\t0x%016lX, // Pawns\n", board->pawns);
-        fprintf(file, "\t0x%016lX, // Rooks\n", board->rooks);
-        fprintf(file, "\t0x%016lX, // Knights\n", board->knights);
-        fprintf(file, "\t0x%016lX, // Bishops\n", board->bishops);
-        fprintf(file, "\t0x%016lX, // Queens\n", board->queens);
-        fprintf(file, "\t0x%016lX, // Kings \n", board->kings);
-        fprintf(file, "\n");
-        fprintf(file, "\t{\n");
-        fprintf(file, "\t\t// Castling\n");
-        fprintf(file, "\t\t%s, // White King side\n",
-                bool_to_string(bool_string, board->castling.white_king));
-        fprintf(file, "\t\t%s, // White Queen side\n",
-                bool_to_string(bool_string, board->castling.white_queen));
-        fprintf(file, "\t\t%s, // Black King side\n",
-                bool_to_string(bool_string, board->castling.black_king));
-        fprintf(file, "\t\t%s, // Black Queen side\n",
-                bool_to_string(bool_string, board->castling.black_queen));
-        fprintf(file, "\t},\n");
-        fprintf(file, "\n");
-        fprintf(file, "\t%zd, // En Passant\t", board->en_passant);
-        fprintf(file, "\n");
-        fprintf(file, "\t%s, // Turn\n",
-                color_to_string(color_string, board->turn));
-        fprintf(file, "\t%zd, // Halfmove Clock\n", board->halfmove_clock);
-        fprintf(file, "\t%zd, // Fullmove Number\n", board->fullmove_number);
-        fprintf(file, "};\n\n");
+        export_to_c(board, position_name, file);
+    } else if (export_format == FEN) {
+        export_to_fen(board, file);
     }
     fclose(file);
 }
 
-Piece *get_piece(Board *board, uint64_t square) {
+Piece get_piece(Board *board, uint64_t square) {
     enum Type type = NONE;
     if ((board->pawns >> square) & 1) {
         type = PAWN;
@@ -303,9 +404,8 @@ void print_board(Board *board) {
         printf("| ");
         for (size_t col = 0; col < 8; col++) {
             size_t square = (7 - row) * 8 + col;
-            Piece *piece = get_piece(board, square);
+            Piece piece = get_piece(board, square);
             print_piece(piece);
-            free(piece);
             printf(" | ");
         }
         printf("\n");

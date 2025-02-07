@@ -28,13 +28,22 @@ struct Piece {
  * @param type The type of the piece
  * @param color The color of the piece
  *
- * @return A pointer to the new piece
+ * @return The new piece
  */
-Piece *new_piece(enum Type type, enum Color color);
+Piece new_piece(enum Type type, enum Color color);
+
+/**
+ * Get the char corresponding to the piece.
+ *
+ * @param piece A pointer to the piece being printed
+ *
+ * @return The char corresponding to the piece
+ */
+char piece_to_char(Piece piece);
 
 /**
  * Print a piece.
  *
  * @param piece A pointer to the piece being printed
  */
-void print_piece(Piece *piece);
+void print_piece(Piece piece);

@@ -2,20 +2,17 @@
 
 #include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-Piece *new_piece(enum Type type, enum Color color) {
-    Piece *result = malloc(sizeof(Piece));
-
-    result->type = type;
-    result->color = color;
-
-    return result;
+Piece new_piece(enum Type type, enum Color color) {
+    return (Piece){
+        type,
+        color,
+    };
 }
 
-void print_piece(Piece *piece) {
+char piece_to_char(Piece piece) {
     char c;
-    switch (piece->type) {
+    switch (piece.type) {
     case NONE:
         c = '.';
         break;
@@ -38,8 +35,12 @@ void print_piece(Piece *piece) {
         c = 'k';
         break;
     }
-    if (piece->color == WHITE) {
+    if (piece.color == WHITE) {
         c = toupper(c);
     }
-    printf("%c", c);
+    return c;
+}
+
+void print_piece(Piece piece) {
+    printf("%c", piece_to_char(piece));
 }

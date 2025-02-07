@@ -64,7 +64,26 @@ static const Board START_POS = {
 
 enum BoardExportFormat {
     C,
+    FEN,
 };
+
+/**
+ * Convert a string to a square
+ *
+ * @param string The string to convert
+ *
+ * @return The square
+ */
+size_t string_to_square(char *string);
+
+/**
+ * Convert a square to a string
+ *
+ * @param square The square to convert
+ *
+ * @return The string
+ */
+char *square_to_string(size_t square);
 
 /**
  * Create a new Board.
@@ -95,6 +114,16 @@ bool board_eq(const Board *board1, const Board *board2);
  */
 void export_board(Board *board, enum BoardExportFormat export_format,
                   char *name, char *file);
+
+/**
+ * Get the piece at location square.
+ *
+ * @param board The position
+ * @param square The square of the piece
+ *
+ * @return The piece on the square
+ */
+Piece get_piece(Board *board, size_t square);
 
 /**
  * Print a bitmap in the form of a chessboard.
