@@ -24,6 +24,44 @@ void add_pawn_moves_to_vector(size_t from_square, size_t to_square,
     }
 }
 
+uint64_t white_pawn_attacks(uint64_t pawns) {
+    uint64_t attacks = 0;
+    while (pawns) {
+        size_t square = __builtin_ctzll(pawns);
+        if (square % 8 != 0) {
+            attacks |= (uint64_t)1 << (square + 7);
+        }
+        if (square % 8 != 7) {
+            attacks |= (uint64_t)1 << (square + 9);
+        }
+        pawns ^= (uint64_t)1 << square;
+    }
+    return attacks;
+}
+
+uint64_t black_pawn_attacks(uint64_t pawns) {
+    uint64_t attacks = 0;
+    while (pawns) {
+        size_t square = __builtin_ctzll(pawns);
+        if (square % 8 != 0) {
+            attacks |= (uint64_t)1 << (square - 9);
+        }
+        if (square % 8 != 7) {
+            attacks |= (uint64_t)1 << (square - 7);
+        }
+        pawns ^= (uint64_t)1 << square;
+    }
+    return attacks;
+}
+
+uint64_t pawn_attacks(uint64_t pawns, enum Color color) {
+    if (color == WHITE) {
+        return white_pawn_attacks(pawns);
+    } else {
+        return black_pawn_attacks(pawns);
+    }
+}
+
 MoveVector *generate_white_pawn_moves(Board *board) {
     MoveVector *moves = new_move_vector();
     uint64_t pawns = board->pawns & board->white_pieces;

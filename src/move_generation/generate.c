@@ -7,7 +7,29 @@
 #include "queen.h"
 #include "rook.h"
 
+void calculate_attack_bitboard(Board *board) {
+    uint64_t own_pieces =
+        board->turn == WHITE ? board->black_pieces : board->white_pieces;
+    uint64_t enemy_pieces =
+        board->turn == WHITE ? board->white_pieces : board->black_pieces;
+
+    if (board->turn == WHITE) {
+        board->attacks = pawn_attacks(board->pawns & own_pieces, BLACK);
+    } else {
+        board->attacks = pawn_attacks(board->pawns & own_pieces, WHITE);
+    }
+    board->attacks |=
+        rook_attacks(board->rooks & own_pieces, own_pieces, enemy_pieces);
+    board->attacks |= knight_attacks(board->knights & own_pieces);
+    board->attacks |=
+        bishop_attacks(board->bishops & own_pieces, own_pieces, enemy_pieces);
+    board->attacks |=
+        queen_attacks(board->queens & own_pieces, own_pieces, enemy_pieces);
+}
+
 MoveVector *generate_moves(Board *board) {
+    calculate_attack_bitboard(board);
+
     MoveVector *moves = new_move_vector();
 
     MoveVector *pawn_moves = generate_pawn_moves(board);

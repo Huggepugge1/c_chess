@@ -4,6 +4,15 @@
 #include "../vector.h"
 
 /**
+ * Get all king attacks
+ *
+ * @param kings The bitboard of the kings
+ *
+ * @return A bitboard containing all possible king attacks
+ */
+uint64_t king_attacks(uint64_t kings);
+
+/**
  * Precompute all possible king attacks
  */
 void generate_king_attack_bitboards();

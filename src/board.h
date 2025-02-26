@@ -29,6 +29,8 @@ struct Board {
     size_t fullmove_counter;
 
     IrreversibleVector *irreversible_moves;
+
+    uint64_t attacks;
 };
 
 static const Board START_POS = {

@@ -4,6 +4,15 @@
 #include "../vector.h"
 
 /**
+ * Get all knight attacks
+ *
+ * @param knights The bitboard of the knights
+ *
+ * @return A bitboard containing all possible knight attacks
+ */
+uint64_t knight_attacks(uint64_t knights);
+
+/**
  * Precompute all possible knight attacks
  */
 void generate_knight_attack_bitboards();

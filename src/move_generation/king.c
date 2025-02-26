@@ -38,6 +38,10 @@ MoveVector *generate_king_moves(Board *board) {
         uint64_t attacks = KING_ATTACK_BITBOARDS[square] & ~own_pieces;
         while (attacks) {
             size_t to = __builtin_ctzll(attacks);
+            if ((uint64_t)1 << to & board->attacks) {
+                attacks ^= (uint64_t)1 << to;
+                continue;
+            }
             if (enemy_pieces & ((uint64_t)1 << to)) {
                 uint64_t move = new_move(square, to, CAPTURE);
                 push_move_vector(moves, move);
@@ -45,7 +49,7 @@ MoveVector *generate_king_moves(Board *board) {
                 uint64_t move = new_move(square, to, QUIET_MOVE);
                 push_move_vector(moves, move);
             }
-            attacks &= attacks - 1;
+            attacks ^= (uint64_t)1 << to;
         }
         kings ^= (uint64_t)1 << square;
     }
