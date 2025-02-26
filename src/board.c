@@ -1,4 +1,5 @@
 #include "board.h"
+#include "exitcode.h"
 #include "piece.h"
 #include "uci.h"
 
@@ -136,7 +137,7 @@ void read_fen_part4(Board *board, char *part) {
 }
 
 void read_fen_part5(Board *board, char *part) {
-    board->fullmove_number = atoi(part);
+    board->fullmove_counter = atoi(part);
 }
 
 void read_fen(Board *board, Split *fen) {
@@ -151,10 +152,21 @@ void read_fen(Board *board, Split *fen) {
 Board *new_board(Split *fen) {
     Board *board = calloc(1, sizeof(Board));
     if (!fen) {
-        return memcpy(board, &START_POS, sizeof(Board));
+        board = memcpy(board, &START_POS, sizeof(Board));
+        if (!board) {
+            crash(EXITCODE_BOARD_ALLOCATION_FAILED);
+        }
+    } else {
+        read_fen(board, fen);
     }
-    read_fen(board, fen);
+    board->irreversible_moves = new_irreversible_vector();
     return board;
+}
+
+void destroy_board(Board *board) {
+    free(board->irreversible_moves->data);
+    free(board->irreversible_moves);
+    free(board);
 }
 
 bool board_eq(const Board *board1, const Board *board2) {
@@ -207,7 +219,7 @@ bool board_eq(const Board *board1, const Board *board2) {
     if (board1->halfmove_clock != board2->halfmove_clock) {
         return false;
     }
-    if (board1->fullmove_number != board2->fullmove_number) {
+    if (board1->fullmove_counter != board2->fullmove_counter) {
         return false;
     }
 
@@ -264,7 +276,7 @@ void export_to_c(Board *board, char *position_name, FILE *file) {
     fprintf(file, "\t%s, // Turn\n",
             color_to_string(color_string, board->turn));
     fprintf(file, "\t%zd, // Halfmove Clock\n", board->halfmove_clock);
-    fprintf(file, "\t%zd, // Fullmove Number\n", board->fullmove_number);
+    fprintf(file, "\t%zd, // Fullmove Number\n", board->fullmove_counter);
     fprintf(file, "};\n\n");
 
     free(bool_string);
@@ -337,7 +349,7 @@ char *board_to_fen(Board *board) {
     strcpy(fen + pos, int_string);
     pos += strlen(int_string);
     fen[pos++] = ' ';
-    sprintf(int_string, "%zd", board->fullmove_number);
+    sprintf(int_string, "%zd", board->fullmove_counter);
     strcpy(fen + pos, int_string);
 
     return fen;
@@ -411,4 +423,10 @@ void print_board(Board *board) {
         printf("\n");
     }
     printf("---------------------------------\n");
+}
+
+void print_fen(Board *board) {
+    char *fen = board_to_fen(board);
+    printf("%s\n", fen);
+    free(fen);
 }

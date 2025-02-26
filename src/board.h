@@ -2,19 +2,12 @@
 
 #include "piece.h"
 #include "uci.h"
+#include "vector.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
 typedef struct Board Board;
-typedef struct Castling Castling;
-
-struct Castling {
-    bool white_king;
-    bool black_king;
-    bool white_queen;
-    bool black_queen;
-};
 
 struct Board {
     uint64_t white_pieces;
@@ -33,33 +26,38 @@ struct Board {
     enum Color turn;
 
     size_t halfmove_clock;
-    size_t fullmove_number;
+    size_t fullmove_counter;
+
+    IrreversibleVector *irreversible_moves;
 };
 
 static const Board START_POS = {
-    0x000000000000FFFF, // White Pieces
-    0xFFFF000000000000, // Black Pieces
+    .white_pieces = 0x000000000000FFFF,
+    .black_pieces = 0xFFFF000000000000,
 
-    0x00FF00000000FF00, // Pawns
-    0x8100000000000081, // Rooks
-    0x4200000000000042, // Knights
-    0x2400000000000024, // Bishops
-    0x0800000000000008, // Queens
-    0x1000000000000010, // Kings
+    .pawns = 0x00FF00000000FF00,
+    .rooks = 0x8100000000000081,
+    .knights = 0x4200000000000042,
+    .bishops = 0x2400000000000024,
+    .queens = 0x0800000000000008,
+    .kings = 0x1000000000000010,
 
-    {
-        // Castling
-        true, // White Kingsside
-        true, // White Queenside
-        true, // Black Kingsside
-        true, // Black Queenside
-    },
-    64, // En Passant
+    .castling =
+        {
+            .white_king = true,
+            .white_queen = true,
+            .black_king = true,
+            .black_queen = true,
+        },
 
-    WHITE, // Turn
+    .en_passant = 64,
 
-    0, // Halfmove Clock
-    1, // Fullmove Number
+    .turn = WHITE,
+
+    .halfmove_clock = 0,
+    .fullmove_counter = 1,
+
+    .irreversible_moves = NULL,
 };
 
 enum BoardExportFormat {
@@ -93,6 +91,13 @@ char *square_to_string(size_t square);
  * @return A pointer to the new board
  */
 Board *new_board(Split *fen);
+
+/**
+ * Destroy a Board.
+ *
+ * @param board The board to destroy
+ */
+void destroy_board(Board *board);
 
 /**
  * Check if two boards are equal.
@@ -138,3 +143,10 @@ void print_bitmap(uint64_t bitmap);
  * @param board The position to be printed
  */
 void print_board(Board *board);
+
+/**
+ * Print the current position in FEN.
+ *
+ * @param board The position to be printed
+ */
+void print_fen(Board *board);

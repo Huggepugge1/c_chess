@@ -3,6 +3,12 @@
 #include <ctype.h>
 #include <stdio.h>
 
+const Piece WHITE_PAWN = {PAWN, WHITE};
+const Piece WHITE_ROOK = {ROOK, WHITE};
+
+const Piece BLACK_PAWN = {PAWN, BLACK};
+const Piece BLACK_ROOK = {ROOK, BLACK};
+
 Piece new_piece(enum Type type, enum Color color) {
     return (Piece){
         type,

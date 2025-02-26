@@ -22,6 +22,11 @@
 
 #include <stdint.h>
 
+#define QUIET_MOVE 0b0000
+#define DOUBLE_PAWN_PUSH 0b0001
+#define CAPTURE 0b0100
+#define EN_PASSANT_CAPTURE 0b0101
+
 /**
  * Parse a move from a string
  *
@@ -30,3 +35,46 @@
  * @return The move
  */
 uint16_t move_from_string(char *move, Board *board);
+
+/**
+ * Convert a move to a string
+ *
+ * @param move The move to convert
+ *
+ * @return The string
+ */
+char *move_to_string(uint16_t move);
+
+/**
+ * Create a new move
+ *
+ * @param to The square to move to
+ * @param from The square to move from
+ * @param flags The flags of the move
+ *
+ * @return The move
+ */
+uint16_t new_move(size_t to, size_t from, uint16_t flags);
+
+/**
+ * Print a move
+ *
+ * @param move The move to print
+ */
+void print_move(uint16_t move);
+
+/**
+ * Make a move
+ *
+ * @param board The current position
+ * @param move The move to make
+ */
+void make_move(Board *board, uint16_t move);
+
+/**
+ * Unmake a move
+ *
+ * @param board The current position
+ * @param move The move to unmake
+ */
+void unmake_move(Board *board, uint16_t move);

@@ -15,7 +15,7 @@ std = "c2x"
 
 [release]
 path = "c_target/release/"
-debug = false
+debug = true
 optimization = 3
 warnings = true
 pedantic = true

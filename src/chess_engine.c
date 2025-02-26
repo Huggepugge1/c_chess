@@ -14,6 +14,6 @@ ChessEngine *new_chess_engine() {
 }
 
 void free_chess_engine(ChessEngine *chess_engine) {
-    free(chess_engine->board);
+    destroy_board(chess_engine->board);
     free(chess_engine);
 }

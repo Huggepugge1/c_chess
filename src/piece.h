@@ -22,6 +22,12 @@ struct Piece {
     enum Color color;
 };
 
+extern const Piece WHITE_PAWN;
+extern const Piece WHITE_ROOK;
+
+extern const Piece BLACK_PAWN;
+extern const Piece BLACK_ROOK;
+
 /**
  * Create a new Piece.
  *
