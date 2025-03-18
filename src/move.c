@@ -90,7 +90,7 @@ char *move_to_string(uint16_t move) {
     char *from_str = square_to_string(from);
     char *to_str = square_to_string(to);
 
-    char *result = malloc(6 * sizeof(char));
+    char *result = calloc(6, sizeof(char));
     strcpy(result, from_str);
     strcat(result, to_str);
 
@@ -262,6 +262,9 @@ void remove_castling_rights(Board *board, size_t from, size_t to,
 }
 
 void make_move(Board *board, uint16_t move) {
+    printf("Making move: ");
+    print_move(move);
+    printf("\n");
     uint16_t from = move & 0b111111;
     uint16_t to = (move >> 6) & 0b111111;
     uint16_t flags = (move >> 12) & 0b1111;
@@ -286,13 +289,6 @@ void make_move(Board *board, uint16_t move) {
         board->halfmove_clock = -1;
     }
 
-    if (promotion(flags)) {
-        Piece promotion_piece =
-            new_piece(get_type_of_promotion(move), from_piece.color);
-        toggle_piece(board, from_piece, to);
-        toggle_piece(board, promotion_piece, to);
-    }
-
     if (double_pawn_push(flags)) {
         board->en_passant = to - board->turn;
     } else {
@@ -308,7 +304,14 @@ void make_move(Board *board, uint16_t move) {
     }
 
     toggle_piece(board, from_piece, from);
-    toggle_piece(board, from_piece, to);
+
+    if (promotion(flags)) {
+        Piece promotion_piece =
+            new_piece(get_type_of_promotion(move), from_piece.color);
+        toggle_piece(board, promotion_piece, to);
+    } else {
+        toggle_piece(board, from_piece, to);
+    }
 
     board->halfmove_clock++;
     board->turn = -board->turn;
@@ -320,6 +323,9 @@ void make_move(Board *board, uint16_t move) {
 }
 
 void unmake_move(Board *board, uint16_t move) {
+    printf("Unmaking move: ");
+    print_move(move);
+    printf("\n");
     uint16_t from = move & 0b111111;
     uint16_t to = (move >> 6) & 0b111111;
     uint16_t flags = (move >> 12) & 0b1111;
@@ -344,18 +350,13 @@ void unmake_move(Board *board, uint16_t move) {
         toggle_piece(board, irreversible.captured_piece, to);
     }
 
-    if (promotion(flags)) {
-        toggle_piece(board, from_piece, to);
-        from_piece.type = PAWN;
-        if (board->turn == WHITE) {
-            toggle_piece(board, from_piece, to);
-        } else {
-            toggle_piece(board, from_piece, to);
-        }
-    }
-
     handle_castle(board, flags);
 
     toggle_piece(board, from_piece, from);
+
+    if (promotion(flags)) {
+        toggle_piece(board, from_piece, to);
+        from_piece.type = PAWN;
+    }
     toggle_piece(board, from_piece, to);
 }

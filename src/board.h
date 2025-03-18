@@ -31,6 +31,11 @@ struct Board {
     IrreversibleVector *irreversible_moves;
 
     uint64_t attacks;
+    uint64_t checkers;
+
+    uint64_t pinned_pieces;
+    uint64_t pinner;
+    uint64_t pinned_ray;
 };
 
 static const Board START_POS = {

@@ -34,7 +34,7 @@ MoveVector *generate_knight_moves(Board *board) {
         board->turn == WHITE ? board->white_pieces : board->black_pieces;
     uint64_t enemy_pieces =
         board->turn == WHITE ? board->black_pieces : board->white_pieces;
-    uint64_t knights = board->knights & own_pieces;
+    uint64_t knights = board->knights & own_pieces & ~board->pinned_pieces;
     while (knights) {
         size_t square = __builtin_ctzll(knights);
         uint64_t attacks = KNIGHT_ATTACK_BITBOARDS[square] & ~own_pieces;

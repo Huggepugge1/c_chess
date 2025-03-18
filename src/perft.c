@@ -17,6 +17,7 @@ size_t perft_helper(ChessEngine *chess_engine, size_t depth) {
     }
 
     MoveVector *moves = generate_moves(chess_engine->board);
+
     size_t nodes = 0;
     for (size_t i = 0; i < moves->size; i++) {
         pthread_mutex_lock(&stopper_mutex);

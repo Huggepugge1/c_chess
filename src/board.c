@@ -372,19 +372,20 @@ void export_board(Board *board, enum BoardExportFormat export_format,
     fclose(file);
 }
 
-Piece get_piece(Board *board, uint64_t square) {
+Piece get_piece(Board *board, size_t square) {
+    uint64_t bitmap = (uint64_t)1 << square;
     enum Type type = NONE;
-    if ((board->pawns >> square) & 1) {
+    if (board->pawns & bitmap) {
         type = PAWN;
-    } else if ((board->rooks >> square) & 1) {
+    } else if (board->rooks & bitmap) {
         type = ROOK;
-    } else if ((board->knights >> square) & 1) {
+    } else if (board->knights & bitmap) {
         type = KNIGHT;
-    } else if ((board->bishops >> square) & 1) {
+    } else if (board->bishops & bitmap) {
         type = BISHOP;
-    } else if ((board->queens >> square) & 1) {
+    } else if (board->queens & bitmap) {
         type = QUEEN;
-    } else if ((board->kings >> square) & 1) {
+    } else if (board->kings & bitmap) {
         type = KING;
     }
 

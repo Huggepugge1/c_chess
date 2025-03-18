@@ -1,5 +1,4 @@
 #include "ray.h"
-#include "../board.h"
 
 #include <stdio.h>
 

@@ -7,13 +7,23 @@
  * Generate all possible moves for the bishops
  *
  * @param bishops The bitboard of the bishops
- * @param own_pieces The bitboard of the pieces of the player whose turn it is
- * @param enemy_pieces The bitboard of the pieces of the player whose turn it is
+ * @param occupied The bitboard of all occupied squares
  *
  * @returns A bitboard containing the possible moves
  */
-uint64_t bishop_attacks(uint64_t bishops, uint64_t own_pieces,
-                        uint64_t enemy_pieces);
+uint64_t bishop_attacks(uint64_t bishops, uint64_t occupied);
+
+/**
+ * Generate all xray attacks for a bishop
+ *
+ * @param occupied The bitboard of all occupied squares
+ * @param blockers The bitboard of all pieces that block the bishop
+ * @param bishop The bitboard of the bishop
+ *
+ * @returns A bitboard containing the xray attacks
+ */
+uint64_t xray_bishop_attacks(uint64_t occupied, uint64_t blockers,
+                             uint64_t bishop);
 
 /**
  * Generate all possible moves for the bishops

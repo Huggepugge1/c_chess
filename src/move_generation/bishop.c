@@ -3,8 +3,7 @@
 #include "../vector.h"
 #include "ray.h"
 
-uint64_t bishop_attacks(uint64_t bishops, uint64_t own_pieces,
-                        uint64_t enemy_pieces) {
+uint64_t bishop_attacks(uint64_t bishops, uint64_t occupied) {
     uint64_t attacks = 0;
     while (bishops) {
         size_t square = __builtin_ctzll(bishops);
@@ -12,11 +11,9 @@ uint64_t bishop_attacks(uint64_t bishops, uint64_t own_pieces,
         for (enum Direction dir = 4; dir < 8; dir++) {
             uint64_t ray_attacks;
             if (dir < 6) {
-                ray_attacks = get_positive_ray_attacks(
-                    own_pieces | enemy_pieces, square, dir);
+                ray_attacks = get_positive_ray_attacks(occupied, square, dir);
             } else {
-                ray_attacks = get_negative_ray_attacks(
-                    own_pieces | enemy_pieces, square, dir);
+                ray_attacks = get_negative_ray_attacks(occupied, square, dir);
             }
             attacks |= ray_attacks;
         }
@@ -25,18 +22,25 @@ uint64_t bishop_attacks(uint64_t bishops, uint64_t own_pieces,
     return attacks;
 }
 
+uint64_t xray_bishop_attacks(uint64_t occupied, uint64_t blockers,
+                             uint64_t bishop) {
+    uint64_t attacks = bishop_attacks(occupied, bishop);
+    blockers &= attacks;
+    return attacks ^ bishop_attacks(occupied ^ blockers, bishop);
+}
+
 MoveVector *generate_bishop_moves(Board *board) {
     MoveVector *moves = new_move_vector();
     uint64_t own_pieces =
         board->turn == WHITE ? board->white_pieces : board->black_pieces;
     uint64_t enemy_pieces =
         board->turn == WHITE ? board->black_pieces : board->white_pieces;
+    uint64_t occupied = own_pieces | enemy_pieces;
     uint64_t bishops = board->bishops & own_pieces;
     while (bishops) {
         size_t square = __builtin_ctzll(bishops);
         // NORTH_EAST, SOUTH_EAST, SOUTH_WEST, NORTH_WEST
-        uint64_t attacks =
-            bishop_attacks((uint64_t)1 << square, own_pieces, enemy_pieces);
+        uint64_t attacks = bishop_attacks((uint64_t)1 << square, occupied);
         attacks &= ~own_pieces;
         while (attacks) {
             size_t to = __builtin_ctzll(attacks);

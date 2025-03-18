@@ -32,9 +32,9 @@ MoveVector *generate_king_moves(Board *board) {
         board->turn == WHITE ? board->white_pieces : board->black_pieces;
     uint64_t enemy_pieces =
         board->turn == WHITE ? board->black_pieces : board->white_pieces;
-    uint64_t kings = board->kings & own_pieces;
-    while (kings) {
-        size_t square = __builtin_ctzll(kings);
+    uint64_t king = board->kings & own_pieces;
+    while (king) {
+        size_t square = __builtin_ctzll(king);
         uint64_t attacks = KING_ATTACK_BITBOARDS[square] & ~own_pieces;
         while (attacks) {
             size_t to = __builtin_ctzll(attacks);
@@ -51,7 +51,7 @@ MoveVector *generate_king_moves(Board *board) {
             }
             attacks ^= (uint64_t)1 << to;
         }
-        kings ^= (uint64_t)1 << square;
+        king ^= (uint64_t)1 << square;
     }
 
     return moves;
