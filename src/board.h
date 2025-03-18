@@ -91,6 +91,13 @@ size_t string_to_square(char *string);
 char *square_to_string(size_t square);
 
 /**
+ * Print a square
+ *
+ * @param square The square to print
+ */
+void print_square(size_t square);
+
+/**
  * Create a new Board.
  *
  * @param fen The fen of the position, NULL if startpos

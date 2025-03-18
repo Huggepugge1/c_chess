@@ -25,11 +25,11 @@ uint64_t rook_attacks(uint64_t rooks, uint64_t occupied) {
     return attacks;
 }
 
-uint64_t xray_rook_attacks(uint64_t occupied, uint64_t blockers,
-                           uint64_t rook) {
-    uint64_t attacks = rook_attacks(occupied, rook);
+uint64_t xray_rook_attacks(uint64_t rook, uint64_t occupied,
+                           uint64_t blockers) {
+    uint64_t attacks = rook_attacks(rook, occupied);
     blockers &= attacks;
-    return attacks ^ rook_attacks(occupied ^ blockers, rook);
+    return attacks ^ rook_attacks(rook, occupied ^ blockers);
 }
 
 MoveVector *generate_rook_moves(Board *board) {

@@ -26,8 +26,8 @@ uint64_t queen_attacks(uint64_t queens, uint64_t occupied) {
     return attacks;
 }
 
-uint64_t xray_queen_attacks(uint64_t occupied, uint64_t blockers,
-                            uint64_t queen) {
+uint64_t xray_queen_attacks(uint64_t queen, uint64_t occupied,
+                            uint64_t blockers) {
     uint64_t attacks = queen_attacks(queen, occupied);
     blockers &= attacks;
     return attacks ^ queen_attacks(queen, occupied ^ blockers);

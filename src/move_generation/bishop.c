@@ -3,6 +3,8 @@
 #include "../vector.h"
 #include "ray.h"
 
+#include <stdio.h>
+
 uint64_t bishop_attacks(uint64_t bishops, uint64_t occupied) {
     uint64_t attacks = 0;
     while (bishops) {
@@ -22,11 +24,11 @@ uint64_t bishop_attacks(uint64_t bishops, uint64_t occupied) {
     return attacks;
 }
 
-uint64_t xray_bishop_attacks(uint64_t occupied, uint64_t blockers,
-                             uint64_t bishop) {
-    uint64_t attacks = bishop_attacks(occupied, bishop);
+uint64_t xray_bishop_attacks(uint64_t bishop, uint64_t occupied,
+                             uint64_t blockers) {
+    uint64_t attacks = bishop_attacks(bishop, occupied);
     blockers &= attacks;
-    return attacks ^ bishop_attacks(occupied ^ blockers, bishop);
+    return attacks ^ bishop_attacks(bishop, occupied ^ blockers);
 }
 
 MoveVector *generate_bishop_moves(Board *board) {

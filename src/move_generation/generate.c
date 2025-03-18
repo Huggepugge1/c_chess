@@ -78,7 +78,7 @@ void calculate_pinned_pieces(Board *board) {
 
     board->pinned_pieces = 0;
 
-    uint64_t pinner = xray_rook_attacks(occupied, own_pieces, king) &
+    uint64_t pinner = xray_rook_attacks(king, occupied, own_pieces) &
                       enemy_pieces & board->bishops;
     board->pinner = pinner;
     while (pinner) {
@@ -86,7 +86,7 @@ void calculate_pinned_pieces(Board *board) {
         board->pinned_pieces |= get_ray(king_square, square) & own_pieces;
         pinner &= pinner - 1;
     }
-    pinner = xray_bishop_attacks(occupied, own_pieces, king) & enemy_pieces &
+    pinner = xray_bishop_attacks(king, occupied, own_pieces) & enemy_pieces &
              board->bishops;
     board->pinner |= pinner;
     while (pinner) {
@@ -94,7 +94,7 @@ void calculate_pinned_pieces(Board *board) {
         board->pinned_pieces |= get_ray(king_square, square) & own_pieces;
         pinner &= pinner - 1;
     }
-    pinner = xray_queen_attacks(occupied, own_pieces, king) & enemy_pieces &
+    pinner = xray_queen_attacks(king, occupied, own_pieces) & enemy_pieces &
              board->queens;
     board->pinner |= pinner;
     while (pinner) {
@@ -107,8 +107,6 @@ void calculate_pinned_pieces(Board *board) {
 uint64_t calculate_pinned_ray(Board *board) {
     uint64_t own_pieces =
         board->turn == WHITE ? board->white_pieces : board->black_pieces;
-    uint64_t enemy_pieces =
-        board->turn == WHITE ? board->black_pieces : board->white_pieces;
     uint64_t king = board->kings & own_pieces;
     if (__builtin_popcountll(board->pinner) != 1) {
         return 0;

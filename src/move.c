@@ -122,37 +122,23 @@ void print_move(uint16_t move) {
     free(string);
 }
 
-bool quiet(uint16_t flags) {
-    return flags == 0b0000;
-}
+bool quiet(uint16_t flags) { return flags == 0b0000; }
 
-bool double_pawn_push(uint16_t flags) {
-    return flags == 0b0001;
-}
+bool double_pawn_push(uint16_t flags) { return flags == 0b0001; }
 
-bool king_castle(uint16_t flags) {
-    return flags == 0b0010;
-}
+bool king_castle(uint16_t flags) { return flags == 0b0010; }
 
-bool queen_castle(uint16_t flags) {
-    return flags == 0b0011;
-}
+bool queen_castle(uint16_t flags) { return flags == 0b0011; }
 
 bool castle(uint16_t flags) {
     return king_castle(flags) || queen_castle(flags);
 }
 
-bool capture(uint16_t flags) {
-    return flags & 0b0100;
-}
+bool capture(uint16_t flags) { return flags & 0b0100; }
 
-bool en_passant(uint16_t flags) {
-    return flags == 0b0101;
-}
+bool en_passant(uint16_t flags) { return flags == 0b0101; }
 
-bool promotion(uint16_t flags) {
-    return flags & 0b1000;
-}
+bool promotion(uint16_t flags) { return flags & 0b1000; }
 
 enum Type get_type_of_promotion(uint16_t flags) {
     switch (flags & 0b0011) {
@@ -262,9 +248,6 @@ void remove_castling_rights(Board *board, size_t from, size_t to,
 }
 
 void make_move(Board *board, uint16_t move) {
-    printf("Making move: ");
-    print_move(move);
-    printf("\n");
     uint16_t from = move & 0b111111;
     uint16_t to = (move >> 6) & 0b111111;
     uint16_t flags = (move >> 12) & 0b1111;
@@ -279,13 +262,12 @@ void make_move(Board *board, uint16_t move) {
         .castling = board->castling,
     };
 
-    if (en_passant(flags)) {
-        Piece captured_piece =
-            get_piece(board, board->en_passant - board->turn);
+    if (en_passant(flags) || capture(flags)) {
+        size_t captured_piece_square =
+            en_passant(flags) ? board->en_passant - board->turn : to;
+        Piece captured_piece = get_piece(board, captured_piece_square);
         irreversible.captured_piece = captured_piece;
-        toggle_piece(board, captured_piece, board->en_passant - board->turn);
-    } else if (capture(flags)) {
-        toggle_piece(board, to_piece, to);
+        toggle_piece(board, captured_piece, captured_piece_square);
         board->halfmove_clock = -1;
     }
 
@@ -323,9 +305,6 @@ void make_move(Board *board, uint16_t move) {
 }
 
 void unmake_move(Board *board, uint16_t move) {
-    printf("Unmaking move: ");
-    print_move(move);
-    printf("\n");
     uint16_t from = move & 0b111111;
     uint16_t to = (move >> 6) & 0b111111;
     uint16_t flags = (move >> 12) & 0b1111;
@@ -352,11 +331,9 @@ void unmake_move(Board *board, uint16_t move) {
 
     handle_castle(board, flags);
 
-    toggle_piece(board, from_piece, from);
-
+    toggle_piece(board, from_piece, to);
     if (promotion(flags)) {
-        toggle_piece(board, from_piece, to);
         from_piece.type = PAWN;
     }
-    toggle_piece(board, from_piece, to);
+    toggle_piece(board, from_piece, from);
 }

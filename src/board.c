@@ -31,6 +31,8 @@ char *square_to_string(size_t square) {
     return string;
 }
 
+void print_square(size_t square) { printf("%s\n", square_to_string(square)); }
+
 void read_fen_part0(Board *board, char *part) {
     size_t square = 56;
     size_t pos = 0;

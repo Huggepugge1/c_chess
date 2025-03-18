@@ -107,7 +107,6 @@ MoveVector *generate_white_pawn_moves(Board *board) {
 MoveVector *generate_white_pawn_moves_check(Board *board) {
     MoveVector *moves = new_move_vector();
     uint64_t pawns = board->pawns & board->white_pieces & ~board->pinned_pieces;
-    uint64_t occupied = board->white_pieces | board->black_pieces;
     while (pawns) {
         size_t square = __builtin_ctzll(pawns);
 
@@ -152,14 +151,14 @@ MoveVector *generate_black_pawn_moves(Board *board) {
             }
         }
 
-        if (board->white_pieces & NOT_H_FILE & (pawn_bitmap >> 7) &
-            pinned_bitmap) {
-            add_pawn_moves_to_vector(square, square - 9, moves, CAPTURE);
-        }
-
-        if (board->white_pieces & NOT_A_FILE & (pawn_bitmap >> 9) &
+        if (board->white_pieces & NOT_A_FILE & (pawn_bitmap >> 7) &
             pinned_bitmap) {
             add_pawn_moves_to_vector(square, square - 7, moves, CAPTURE);
+        }
+
+        if (board->white_pieces & NOT_H_FILE & (pawn_bitmap >> 9) &
+            pinned_bitmap) {
+            add_pawn_moves_to_vector(square, square - 9, moves, CAPTURE);
         }
         if (board->en_passant != 64 &&
             ((square - 9 == board->en_passant && square != 32 &&
@@ -178,7 +177,6 @@ MoveVector *generate_black_pawn_moves(Board *board) {
 MoveVector *generate_black_pawn_moves_check(Board *board) {
     MoveVector *moves = new_move_vector();
     uint64_t pawns = board->pawns & board->black_pieces & ~board->pinned_pieces;
-    uint64_t occupied = board->white_pieces | board->black_pieces;
     while (pawns) {
         size_t square = __builtin_ctzll(pawns);
 
